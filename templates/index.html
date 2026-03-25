@@ -3,219 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polymarket Bot Dashboard</title>
+    <title>PolyDashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0a0a1a;
-            color: #e0e0e0;
-            min-height: 100vh;
+        :root {
+            --bg: #0a0a1a; --card: #12122a; --border: #2a2a5a;
+            --text: #e0e0e0; --muted: #888; --accent: #6c5ce7;
+            --green: #00b894; --red: #e17055; --yellow: #fdcb6e;
+            --btc: #f7931a; --eth: #627eea;
         }
-
-        .header {
-            background: linear-gradient(135deg, #1a1a3e, #0d0d2b);
-            padding: 20px 30px;
-            border-bottom: 1px solid #2a2a5a;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .light {
+            --bg: #f0f2f5; --card: #fff; --border: #e0e0e0;
+            --text: #1a1a2e; --muted: #666; --accent: #6c5ce7;
         }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; transition:all 0.3s; }
 
-        .header h1 {
-            font-size: 22px;
-            color: #fff;
-        }
+        /* Header */
+        .header { background:linear-gradient(135deg,#1a1a3e,#0d0d2b); padding:15px 25px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+        .light .header { background:linear-gradient(135deg,#667eea,#764ba2); }
+        .header h1 { font-size:20px; color:#fff; }
+        .header h1 span { color:#a29bfe; }
+        .header-right { display:flex; align-items:center; gap:12px; }
+        .header .status { font-size:12px; color:rgba(255,255,255,0.6); }
 
-        .header h1 span { color: #6c5ce7; }
+        /* Toggle buttons */
+        .toggle-btn { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:12px; transition:all 0.2s; }
+        .toggle-btn:hover { background:rgba(255,255,255,0.2); }
+        .toggle-btn.active { background:var(--accent); border-color:var(--accent); }
 
-        .header .status {
-            font-size: 13px;
-            color: #888;
-        }
+        .container { max-width:1250px; margin:0 auto; padding:15px; }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        /* Filter bar */
+        .filter-bar { display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap; }
+        .filter-btn { background:var(--card); border:1px solid var(--border); color:var(--muted); padding:6px 14px; border-radius:8px; cursor:pointer; font-size:12px; transition:all 0.2s; }
+        .filter-btn:hover { border-color:var(--accent); color:var(--text); }
+        .filter-btn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
 
-        /* Cards Grid */
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
+        /* Cards */
+        .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:18px; }
+        .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
+        .card .label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+        .card .value { font-size:24px; font-weight:700; }
+        .card .sub { font-size:12px; color:var(--muted); margin-top:3px; }
 
-        .card {
-            background: #12122a;
-            border: 1px solid #2a2a5a;
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-        }
+        .green { color:var(--green); } .red { color:var(--red); }
+        .blue { color:var(--accent); } .yellow { color:var(--yellow); }
 
-        .card .label {
-            font-size: 12px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-        }
+        /* Section */
+        .section { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:15px; }
+        .section h2 { font-size:14px; color:var(--text); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+        .section h2 .tag { font-size:11px; color:var(--muted); font-weight:400; }
 
-        .card .value {
-            font-size: 28px;
-            font-weight: 700;
-        }
-
-        .card .sub {
-            font-size: 13px;
-            color: #888;
-            margin-top: 4px;
-        }
-
-        .green { color: #00b894; }
-        .red { color: #e17055; }
-        .blue { color: #6c5ce7; }
-        .yellow { color: #fdcb6e; }
-
-        /* Sections */
-        .section {
-            background: #12122a;
-            border: 1px solid #2a2a5a;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .section h2 {
-            font-size: 16px;
-            color: #fff;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #2a2a5a;
-        }
-
-        /* Asset boxes */
-        .assets {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .asset-box {
-            background: #1a1a3e;
-            border-radius: 10px;
-            padding: 18px;
-        }
-
-        .asset-box h3 {
-            font-size: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .asset-box .icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .btc-icon { background: #f7931a; color: #fff; }
-        .eth-icon { background: #627eea; color: #fff; }
-
-        .asset-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .asset-stat {
-            font-size: 13px;
-        }
-
-        .asset-stat .label { color: #888; font-size: 11px; }
-        .asset-stat .val { font-size: 18px; font-weight: 600; }
+        /* Assets */
+        .assets { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:15px; }
+        .asset-box { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+        .asset-box h3 { font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+        .icon { width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:bold; }
+        .btc-icon { background:var(--btc); color:#fff; } .eth-icon { background:var(--eth); color:#fff; }
+        .asset-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; }
+        .asset-stat .label { color:var(--muted); font-size:10px; } .asset-stat .val { font-size:16px; font-weight:600; }
 
         /* Chart */
-        .chart-container {
-            position: relative;
-            height: 250px;
-        }
+        .chart-container { position:relative; height:220px; }
 
-        /* Trades table */
-        .trades-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
+        /* Heatmap */
+        .heatmap { display:grid; grid-template-columns:repeat(12,1fr); gap:3px; }
+        .heat-cell { aspect-ratio:1; border-radius:4px; display:flex; flex-direction:column; align-items:center; justify-content:center; font-size:9px; position:relative; cursor:default; }
+        .heat-cell .hour { font-weight:600; font-size:10px; }
+        .heat-cell .count { font-size:8px; opacity:0.8; }
+        .heat-cell:hover::after { content:attr(data-tip); position:absolute; bottom:110%; left:50%; transform:translateX(-50%); background:#1a1a3e; color:#fff; padding:4px 8px; border-radius:4px; font-size:10px; white-space:nowrap; z-index:10; }
 
-        .trades-table th {
-            text-align: left;
-            color: #888;
-            font-weight: 500;
-            padding: 8px 10px;
-            border-bottom: 1px solid #2a2a5a;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        /* Streak */
+        .streak-bar { display:flex; gap:3px; align-items:center; height:24px; }
+        .streak-dot { width:18px; height:18px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fff; }
+        .streak-win { background:var(--green); } .streak-loss { background:var(--red); }
 
-        .trades-table td {
-            padding: 10px;
-            border-bottom: 1px solid #1a1a3e;
-        }
-
-        .trades-table tr:hover { background: #1a1a3e; }
-
-        .badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .badge-win { background: rgba(0,184,148,0.15); color: #00b894; }
-        .badge-loss { background: rgba(225,112,85,0.15); color: #e17055; }
-        .badge-btc { background: rgba(247,147,26,0.15); color: #f7931a; }
-        .badge-eth { background: rgba(98,126,234,0.15); color: #627eea; }
+        /* Table */
+        .trades-table { width:100%; border-collapse:collapse; font-size:12px; }
+        .trades-table th { text-align:left; color:var(--muted); font-weight:500; padding:7px 8px; border-bottom:1px solid var(--border); font-size:10px; text-transform:uppercase; letter-spacing:0.5px; }
+        .trades-table td { padding:8px; border-bottom:1px solid rgba(42,42,90,0.3); }
+        .trades-table tr:hover { background:rgba(108,92,231,0.05); }
+        .badge { display:inline-block; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:600; }
+        .badge-win { background:rgba(0,184,148,0.15); color:var(--green); }
+        .badge-loss { background:rgba(225,112,85,0.15); color:var(--red); }
+        .badge-btc { background:rgba(247,147,26,0.12); color:var(--btc); }
+        .badge-eth { background:rgba(98,126,234,0.12); color:var(--eth); }
+        .badge-bot { background:rgba(108,92,231,0.12); color:var(--accent); font-size:9px; }
+        .badge-manual { background:rgba(136,136,136,0.12); color:var(--muted); font-size:9px; }
 
         /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #888;
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid #2a2a5a;
-            border-top-color: #6c5ce7;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading { text-align:center; padding:40px; color:var(--muted); }
+        .spinner { display:inline-block; width:28px; height:28px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            .cards { grid-template-columns: repeat(2, 1fr); }
-            .assets { grid-template-columns: 1fr; }
-            .header { flex-direction: column; gap: 8px; }
+        @media(max-width:768px) {
+            .cards { grid-template-columns:repeat(2,1fr); }
+            .assets { grid-template-columns:1fr; }
+            .heatmap { grid-template-columns:repeat(6,1fr); }
+            .asset-stats { grid-template-columns:1fr 1fr; }
         }
     </style>
 </head>
@@ -223,30 +110,52 @@
 
 <div class="header">
     <h1><span>Poly</span>Dashboard</h1>
-    <div class="status" id="lastUpdate">Carregando...</div>
+    <div class="header-right">
+        <div class="status" id="lastUpdate">Carregando...</div>
+        <button class="toggle-btn" id="themeBtn" onclick="toggleTheme()">Light</button>
+    </div>
 </div>
 
 <div class="container">
-    <!-- Loading -->
     <div class="loading" id="loading">
         <div class="spinner"></div>
-        <p style="margin-top:10px;">Carregando dados da Polymarket...</p>
+        <p style="margin-top:10px;">Carregando dados...</p>
     </div>
 
-    <!-- Content (hidden until data loads) -->
     <div id="content" style="display:none;">
+
+        <!-- Filters -->
+        <div class="filter-bar">
+            <button class="filter-btn active" data-period="all" onclick="setPeriod('all',this)">Total</button>
+            <button class="filter-btn" data-period="today" onclick="setPeriod('today',this)">Hoje</button>
+            <button class="filter-btn" data-period="week" onclick="setPeriod('week',this)">7 Dias</button>
+            <button class="filter-btn" data-period="month" onclick="setPeriod('month',this)">30 Dias</button>
+            <div style="flex:1;"></div>
+            <button class="filter-btn" id="filterAll" onclick="setSource('all',this)">Todos</button>
+            <button class="filter-btn active" id="filterBot" onclick="setSource('bot',this)">Bot</button>
+        </div>
 
         <!-- Top Cards -->
         <div class="cards">
             <div class="card">
-                <div class="label">PnL Total</div>
-                <div class="value" id="totalPnl">--</div>
-                <div class="sub" id="totalTrades">-- trades</div>
+                <div class="label">PnL</div>
+                <div class="value" id="mainPnl">--</div>
+                <div class="sub" id="mainTrades">-- trades</div>
             </div>
             <div class="card">
                 <div class="label">Win Rate</div>
-                <div class="value blue" id="totalWR">--</div>
-                <div class="sub" id="totalWL">--W / --L</div>
+                <div class="value blue" id="mainWR">--</div>
+                <div class="sub" id="mainWL">--W / --L</div>
+            </div>
+            <div class="card">
+                <div class="label">ROI</div>
+                <div class="value" id="mainROI">--</div>
+                <div class="sub" id="mainInvested">investido: $--</div>
+            </div>
+            <div class="card">
+                <div class="label">Streak</div>
+                <div class="value" id="streakValue">--</div>
+                <div class="sub" id="streakSub">melhor: --</div>
             </div>
             <div class="card">
                 <div class="label">PnL Hoje</div>
@@ -254,7 +163,7 @@
                 <div class="sub" id="todayWL">--W / --L</div>
             </div>
             <div class="card">
-                <div class="label">Posicoes Ativas</div>
+                <div class="label">Ativas</div>
                 <div class="value yellow" id="activeCount">--</div>
                 <div class="sub" id="activeValue">$--</div>
             </div>
@@ -265,225 +174,257 @@
             <div class="asset-box">
                 <h3><span class="icon btc-icon">B</span> Bitcoin</h3>
                 <div class="asset-stats">
-                    <div class="asset-stat">
-                        <div class="label">Score</div>
-                        <div class="val" id="btcScore">--</div>
-                    </div>
-                    <div class="asset-stat">
-                        <div class="label">Win Rate</div>
-                        <div class="val blue" id="btcWR">--</div>
-                    </div>
-                    <div class="asset-stat">
-                        <div class="label">PnL</div>
-                        <div class="val" id="btcPnl">--</div>
-                    </div>
-                    <div class="asset-stat">
-                        <div class="label">Avg Win</div>
-                        <div class="val green" id="btcAvg">--</div>
-                    </div>
+                    <div class="asset-stat"><div class="label">Score</div><div class="val" id="btcScore">--</div></div>
+                    <div class="asset-stat"><div class="label">Win Rate</div><div class="val blue" id="btcWR">--</div></div>
+                    <div class="asset-stat"><div class="label">PnL</div><div class="val" id="btcPnl">--</div></div>
+                    <div class="asset-stat"><div class="label">ROI</div><div class="val" id="btcROI">--</div></div>
+                    <div class="asset-stat"><div class="label">Avg Win</div><div class="val green" id="btcAvg">--</div></div>
+                    <div class="asset-stat"><div class="label">Bot</div><div class="val blue" id="btcBot">--</div></div>
                 </div>
             </div>
             <div class="asset-box">
                 <h3><span class="icon eth-icon">E</span> Ethereum</h3>
                 <div class="asset-stats">
-                    <div class="asset-stat">
-                        <div class="label">Score</div>
-                        <div class="val" id="ethScore">--</div>
-                    </div>
-                    <div class="asset-stat">
-                        <div class="label">Win Rate</div>
-                        <div class="val blue" id="ethWR">--</div>
-                    </div>
-                    <div class="asset-stat">
-                        <div class="label">PnL</div>
-                        <div class="val" id="ethPnl">--</div>
-                    </div>
-                    <div class="asset-stat">
-                        <div class="label">Avg Win</div>
-                        <div class="val green" id="ethAvg">--</div>
-                    </div>
+                    <div class="asset-stat"><div class="label">Score</div><div class="val" id="ethScore">--</div></div>
+                    <div class="asset-stat"><div class="label">Win Rate</div><div class="val blue" id="ethWR">--</div></div>
+                    <div class="asset-stat"><div class="label">PnL</div><div class="val" id="ethPnl">--</div></div>
+                    <div class="asset-stat"><div class="label">ROI</div><div class="val" id="ethROI">--</div></div>
+                    <div class="asset-stat"><div class="label">Avg Win</div><div class="val green" id="ethAvg">--</div></div>
+                    <div class="asset-stat"><div class="label">Bot</div><div class="val blue" id="ethBot">--</div></div>
                 </div>
             </div>
         </div>
 
         <!-- Chart -->
         <div class="section">
-            <h2>PnL Acumulado</h2>
-            <div class="chart-container">
-                <canvas id="pnlChart"></canvas>
+            <h2>PnL Acumulado <span class="tag" id="chartPeriod">Total</span></h2>
+            <div class="chart-container"><canvas id="pnlChart"></canvas></div>
+        </div>
+
+        <!-- Heatmap + Streak -->
+        <div style="display:grid; grid-template-columns:2fr 1fr; gap:12px; margin-bottom:15px;">
+            <div class="section" style="margin:0;">
+                <h2>Mapa de Calor (Hora UTC) <span class="tag">WR por hora</span></h2>
+                <div class="heatmap" id="heatmap"></div>
+            </div>
+            <div class="section" style="margin:0;">
+                <h2>Ultimos Resultados</h2>
+                <div class="streak-bar" id="streakBar"></div>
+                <div style="margin-top:10px; font-size:11px; color:var(--muted);" id="streakInfo"></div>
             </div>
         </div>
 
         <!-- Recent Trades -->
         <div class="section">
-            <h2>Trades Recentes</h2>
+            <h2>Trades Recentes <span class="tag" id="tradeCount">--</span></h2>
+            <div style="overflow-x:auto;">
             <table class="trades-table">
-                <thead>
-                    <tr>
-                        <th>Resultado</th>
-                        <th>Mercado</th>
-                        <th>Asset</th>
-                        <th>Custo</th>
-                        <th>Retorno</th>
-                        <th>PnL</th>
-                    </tr>
-                </thead>
-                <tbody id="tradesBody">
-                </tbody>
+                <thead><tr>
+                    <th>Status</th><th>Tipo</th><th>Mercado</th><th>Asset</th>
+                    <th>Custo</th><th>Retorno</th><th>PnL</th><th>Hora</th>
+                </tr></thead>
+                <tbody id="tradesBody"></tbody>
             </table>
+            </div>
         </div>
 
     </div>
 </div>
 
 <script>
+let DATA = null;
 let pnlChart = null;
+let currentPeriod = 'all';
+let currentSource = 'bot';
 
-function formatMoney(v) {
-    const sign = v >= 0 ? '+' : '';
-    return sign + '$' + Math.abs(v).toFixed(2);
+function $(id) { return document.getElementById(id); }
+function fmt(v) { return (v>=0?'+':'')+('$'+Math.abs(v).toFixed(2)); }
+function cc(v) { return v>=0?'green':'red'; }
+
+function toggleTheme() {
+    document.body.classList.toggle('light');
+    $('themeBtn').textContent = document.body.classList.contains('light') ? 'Dark' : 'Light';
+    if (DATA) render(DATA);
 }
 
-function colorClass(v) {
-    return v >= 0 ? 'green' : 'red';
+function setPeriod(p, btn) {
+    currentPeriod = p;
+    document.querySelectorAll('.filter-bar .filter-btn[data-period]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (DATA) render(DATA);
 }
 
-function updateDashboard(data) {
-    // Top cards
-    const tp = data.total.pnl;
-    document.getElementById('totalPnl').textContent = formatMoney(tp);
-    document.getElementById('totalPnl').className = 'value ' + colorClass(tp);
-    document.getElementById('totalTrades').textContent = data.total.trades + ' trades';
-    document.getElementById('totalWR').textContent = data.total.wr + '%';
-    document.getElementById('totalWL').textContent = data.total.wins + 'W / ' + data.total.losses + 'L';
+function setSource(s, btn) {
+    currentSource = s;
+    $('filterAll').classList.toggle('active', s==='all');
+    $('filterBot').classList.toggle('active', s==='bot');
+    if (DATA) render(DATA);
+}
 
-    const tdp = data.today.pnl;
-    document.getElementById('todayPnl').textContent = formatMoney(tdp);
-    document.getElementById('todayPnl').className = 'value ' + colorClass(tdp);
-    document.getElementById('todayWL').textContent = data.today.wins + 'W / ' + data.today.losses + 'L';
+function getFiltered(data) {
+    let trades = data.recent || [];
+    if (currentSource === 'bot') trades = trades.filter(t => t.is_bot);
 
-    document.getElementById('activeCount').textContent = data.total.active_count;
-    document.getElementById('activeValue').textContent = '$' + data.total.active_value.toFixed(2);
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const weekAgo = new Date(now - 7*86400000).toISOString().split('T')[0];
+    const monthAgo = new Date(now - 30*86400000).toISOString().split('T')[0];
 
-    // BTC
-    const btc = data.assets.BTC || {};
-    document.getElementById('btcScore').textContent = (btc.wins||0) + 'W / ' + (btc.losses||0) + 'L';
-    document.getElementById('btcWR').textContent = (btc.wr||0) + '%';
-    document.getElementById('btcPnl').textContent = formatMoney(btc.pnl||0);
-    document.getElementById('btcPnl').className = 'val ' + colorClass(btc.pnl||0);
-    document.getElementById('btcAvg').textContent = '$' + (btc.avg_win||0).toFixed(2);
+    if (currentPeriod === 'today') trades = trades.filter(t => t.date === todayStr);
+    else if (currentPeriod === 'week') trades = trades.filter(t => t.date >= weekAgo);
+    else if (currentPeriod === 'month') trades = trades.filter(t => t.date >= monthAgo);
 
-    // ETH
-    const eth = data.assets.ETH || {};
-    document.getElementById('ethScore').textContent = (eth.wins||0) + 'W / ' + (eth.losses||0) + 'L';
-    document.getElementById('ethWR').textContent = (eth.wr||0) + '%';
-    document.getElementById('ethPnl').textContent = formatMoney(eth.pnl||0);
-    document.getElementById('ethPnl').className = 'val ' + colorClass(eth.pnl||0);
-    document.getElementById('ethAvg').textContent = '$' + (eth.avg_win||0).toFixed(2);
+    return trades;
+}
+
+function render(data) {
+    DATA = data;
+    const trades = getFiltered(data);
+    const wins = trades.filter(t => t.won);
+    const losses = trades.filter(t => !t.won);
+    const pnl = trades.reduce((s,t) => s+t.pnl, 0);
+    const invested = trades.reduce((s,t) => s+t.cost, 0);
+    const wr = trades.length ? (wins.length/trades.length*100) : 0;
+    const roi = invested > 0 ? (pnl/invested*100) : 0;
+
+    // Cards
+    $('mainPnl').textContent = fmt(pnl);
+    $('mainPnl').className = 'value ' + cc(pnl);
+    $('mainTrades').textContent = trades.length + ' trades';
+    $('mainWR').textContent = wr.toFixed(1) + '%';
+    $('mainWL').textContent = wins.length + 'W / ' + losses.length + 'L';
+    $('mainROI').textContent = (roi>=0?'+':'') + roi.toFixed(1) + '%';
+    $('mainROI').className = 'value ' + cc(roi);
+    $('mainInvested').textContent = 'investido: $' + invested.toFixed(0);
+
+    // Today
+    const tp = data.today.pnl;
+    $('todayPnl').textContent = fmt(tp);
+    $('todayPnl').className = 'value ' + cc(tp);
+    $('todayWL').textContent = data.today.wins + 'W / ' + data.today.losses + 'L';
+
+    // Active
+    $('activeCount').textContent = data.total.active_count;
+    $('activeValue').textContent = '$' + data.total.active_value.toFixed(2);
+
+    // Streak
+    const s = data.streak;
+    const sColor = s.current_type === 'win' ? 'green' : 'red';
+    $('streakValue').textContent = s.current + (s.current_type === 'win' ? 'W' : 'L');
+    $('streakValue').className = 'value ' + sColor;
+    $('streakSub').textContent = 'melhor: ' + s.best_win + 'W | pior: ' + s.best_loss + 'L';
+
+    // Streak bar (last 30 trades)
+    const bar = $('streakBar');
+    bar.innerHTML = '';
+    const last30 = [...trades].reverse().slice(-30);
+    last30.forEach(t => {
+        const dot = document.createElement('div');
+        dot.className = 'streak-dot ' + (t.won ? 'streak-win' : 'streak-loss');
+        dot.textContent = t.won ? 'W' : 'L';
+        dot.title = t.asset + ' ' + fmt(t.pnl);
+        bar.appendChild(dot);
+    });
+    $('streakInfo').textContent = 'Ultimos ' + last30.length + ' trades | ' +
+        last30.filter(t=>t.won).length + 'W ' + last30.filter(t=>!t.won).length + 'L';
+
+    // Assets
+    ['BTC','ETH'].forEach(a => {
+        const d = data.assets[a] || {};
+        const pre = a.toLowerCase();
+        $(pre+'Score').textContent = d.wins+'W / '+d.losses+'L';
+        $(pre+'WR').textContent = d.wr+'%';
+        $(pre+'Pnl').textContent = fmt(d.pnl); $(pre+'Pnl').className = 'val '+cc(d.pnl);
+        $(pre+'ROI').textContent = (d.roi>=0?'+':'')+d.roi+'%'; $(pre+'ROI').className = 'val '+cc(d.roi);
+        $(pre+'Avg').textContent = '$'+(d.avg_win||0).toFixed(2);
+        $(pre+'Bot').textContent = d.bot_wins+'W/'+d.bot_losses+'L ('+d.bot_wr+'%)';
+    });
 
     // Chart
     const daily = data.daily || [];
     if (daily.length > 0) {
-        const labels = daily.map(d => d.date);
-        const cumData = daily.map(d => d.cumulative);
-        const dailyData = daily.map(d => d.pnl);
-
+        const labels = daily.map(d=>d.date.slice(5));
+        const cumD = daily.map(d=>d.cumulative);
+        const dayD = daily.map(d=>d.pnl);
+        const colors = dayD.map(v => v >= 0 ? 'rgba(0,184,148,0.7)' : 'rgba(225,112,85,0.7)');
         if (pnlChart) pnlChart.destroy();
-        pnlChart = new Chart(document.getElementById('pnlChart'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'PnL Acumulado',
-                        data: cumData,
-                        borderColor: '#6c5ce7',
-                        backgroundColor: 'rgba(108,92,231,0.1)',
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#6c5ce7',
-                    },
-                    {
-                        label: 'PnL Diario',
-                        data: dailyData,
-                        borderColor: '#00b894',
-                        backgroundColor: 'rgba(0,184,148,0.1)',
-                        fill: false,
-                        tension: 0.3,
-                        pointRadius: 3,
-                        borderDash: [5, 5],
-                    }
+        const isDark = !document.body.classList.contains('light');
+        const gridC = isDark ? '#1a1a3e' : '#e0e0e0';
+        const tickC = isDark ? '#666' : '#999';
+        pnlChart = new Chart($('pnlChart'), {
+            type:'bar',
+            data:{
+                labels, datasets:[
+                    { label:'PnL Diario', data:dayD, backgroundColor:colors, borderRadius:4, order:2 },
+                    { label:'Acumulado', data:cumD, type:'line', borderColor:'#6c5ce7', backgroundColor:'rgba(108,92,231,0.1)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:'#6c5ce7', order:1 },
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { labels: { color: '#888' } }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#666', maxTicksLimit: 10 },
-                        grid: { color: '#1a1a3e' }
-                    },
-                    y: {
-                        ticks: {
-                            color: '#666',
-                            callback: v => '$' + v.toFixed(0)
-                        },
-                        grid: { color: '#1a1a3e' }
-                    }
+            options:{
+                responsive:true, maintainAspectRatio:false,
+                plugins:{ legend:{ labels:{ color:tickC, font:{size:11} } } },
+                scales:{
+                    x:{ ticks:{color:tickC,maxTicksLimit:12,font:{size:10}}, grid:{color:gridC} },
+                    y:{ ticks:{color:tickC,callback:v=>'$'+v.toFixed(0),font:{size:10}}, grid:{color:gridC} }
                 }
             }
         });
+        $('chartPeriod').textContent = {all:'Total',today:'Hoje',week:'7 Dias',month:'30 Dias'}[currentPeriod];
+    }
+
+    // Heatmap
+    const hm = data.heatmap || {};
+    const hmEl = $('heatmap');
+    hmEl.innerHTML = '';
+    for (let h=0; h<24; h++) {
+        const d = hm[h] || {wins:0,losses:0,total:0,wr:0,pnl:0};
+        const intensity = Math.min(d.total / 5, 1);
+        let bg;
+        if (d.total === 0) bg = 'rgba(42,42,90,0.3)';
+        else if (d.wr >= 80) bg = `rgba(0,184,148,${0.2+intensity*0.6})`;
+        else if (d.wr >= 50) bg = `rgba(253,203,110,${0.2+intensity*0.5})`;
+        else bg = `rgba(225,112,85,${0.2+intensity*0.6})`;
+
+        const cell = document.createElement('div');
+        cell.className = 'heat-cell';
+        cell.style.background = bg;
+        cell.setAttribute('data-tip', h+'h: '+d.wins+'W/'+d.losses+'L ('+d.wr+'%) $'+d.pnl.toFixed(2));
+        cell.innerHTML = '<div class="hour">'+h+'h</div><div class="count">'+d.total+'</div>';
+        hmEl.appendChild(cell);
     }
 
     // Trades table
-    const tbody = document.getElementById('tradesBody');
+    const tbody = $('tradesBody');
     tbody.innerHTML = '';
-    (data.recent || []).forEach(t => {
+    $('tradeCount').textContent = trades.length + ' trades';
+    trades.slice(0,50).forEach(t => {
         const row = document.createElement('tr');
-        const resultBadge = t.won
-            ? '<span class="badge badge-win">WIN</span>'
-            : '<span class="badge badge-loss">LOSS</span>';
-        const assetBadge = t.asset === 'BTC'
-            ? '<span class="badge badge-btc">BTC</span>'
-            : '<span class="badge badge-eth">ETH</span>';
-        const pnlColor = t.pnl >= 0 ? 'green' : 'red';
-
-        row.innerHTML = `
-            <td>${resultBadge}</td>
-            <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title}</td>
-            <td>${assetBadge}</td>
-            <td>$${t.cost.toFixed(2)}</td>
-            <td>$${t.payout.toFixed(2)}</td>
-            <td class="${pnlColor}" style="font-weight:600;">${formatMoney(t.pnl)}</td>
-        `;
+        const res = t.won ? '<span class="badge badge-win">WIN</span>' : '<span class="badge badge-loss">LOSS</span>';
+        const tipo = t.is_bot ? '<span class="badge badge-bot">BOT</span>' : '<span class="badge badge-manual">MANUAL</span>';
+        const asset = t.asset==='BTC' ? '<span class="badge badge-btc">BTC</span>' : '<span class="badge badge-eth">ETH</span>';
+        const time = t.ts ? new Date(t.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+        row.innerHTML = '<td>'+res+'</td><td>'+tipo+'</td>'
+            + '<td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+t.title+'</td>'
+            + '<td>'+asset+'</td><td>$'+t.cost.toFixed(2)+'</td><td>$'+t.payout.toFixed(2)+'</td>'
+            + '<td class="'+cc(t.pnl)+'" style="font-weight:600;">'+fmt(t.pnl)+'</td>'
+            + '<td style="color:var(--muted);font-size:11px;">'+time+'</td>';
         tbody.appendChild(row);
     });
 
-    // Update time
-    document.getElementById('lastUpdate').textContent =
-        'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+    $('lastUpdate').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
 }
 
 async function fetchData() {
     try {
-        const resp = await fetch('/api/data');
-        const data = await resp.json();
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('content').style.display = 'block';
-        updateDashboard(data);
-    } catch (e) {
-        console.error('Erro:', e);
-    }
+        const r = await fetch('/api/data');
+        const d = await r.json();
+        $('loading').style.display = 'none';
+        $('content').style.display = 'block';
+        render(d);
+    } catch(e) { console.error('Erro:',e); }
 }
 
-// Initial load + auto-refresh every 60s
 fetchData();
 setInterval(fetchData, 60000);
 </script>
-
 </body>
 </html>

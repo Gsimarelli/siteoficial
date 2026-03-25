@@ -1,6 +1,6 @@
 """
-Dashboard V2 — Painel completo dos bots Polymarket
-Flask + Chart.js | Filtros, heatmap, streaks, ROI
+Dashboard V2 — Painel dos bots Polymarket
+Flask + Chart.js | PnL, streaks, ROI
 """
 
 import os
@@ -21,10 +21,6 @@ except ImportError:
 FUNDER = os.getenv("POLY_FUNDER", "0xcd30786A7546807172050C6F4295F2CE292D943c")
 DATA_API = "https://data-api.polymarket.com"
 PORT = int(os.getenv("PORT", "8080"))
-
-# Bot detection: bot trades are $5-$13 in updown-5m markets
-BOT_MIN_COST = 4.0
-BOT_MAX_COST = 14.0
 
 app = Flask(__name__)
 log = logging.getLogger("dashboard")
@@ -75,15 +71,6 @@ def fetch_active_positions():
 def classify_asset(title):
     t = (title or "").lower()
     return "ETH" if ("ethereum" in t or "eth-updown" in t) else "BTC"
-
-
-def is_bot_trade(trade):
-    """Detecta se é trade do bot (updown-5m, custo $5-$13)."""
-    slug = trade.get("slug", "")
-    cost = trade.get("cost", 0)
-    is_updown = "updown-5m" in slug
-    is_bot_range = BOT_MIN_COST <= cost <= BOT_MAX_COST
-    return is_updown and is_bot_range
 
 
 def build_trades(activities):
@@ -156,7 +143,6 @@ def build_trades(activities):
             "date": ts.strftime("%Y-%m-%d"),
             "hour": ts.hour,
         }
-        trade["is_bot"] = is_bot_trade(trade)
         result.append(trade)
 
     result.sort(key=lambda x: x["ts_dt"], reverse=True)
@@ -203,23 +189,6 @@ def compute_streak(trades):
     }
 
 
-def compute_heatmap(trades):
-    """Mapa de calor: WR por hora UTC."""
-    hours = {}
-    for h in range(24):
-        ht = [t for t in trades if t["hour"] == h]
-        wins = len([t for t in ht if t["won"]])
-        total = len(ht)
-        hours[h] = {
-            "wins": wins,
-            "losses": total - wins,
-            "total": total,
-            "wr": round(wins / total * 100, 1) if total > 0 else 0,
-            "pnl": round(sum(t["pnl"] for t in ht), 2),
-        }
-    return hours
-
-
 def compute_metrics(trades, active_positions):
     all_trades = trades
     wins = [t for t in trades if t["won"]]
@@ -229,15 +198,6 @@ def compute_metrics(trades, active_positions):
     wr = len(wins) / len(trades) * 100 if trades else 0
     roi = (total_pnl / total_cost * 100) if total_cost > 0 else 0
 
-    # Bot-only trades
-    bot_trades = [t for t in trades if t["is_bot"]]
-    bot_wins = [t for t in bot_trades if t["won"]]
-    bot_losses = [t for t in bot_trades if not t["won"]]
-    bot_pnl = sum(t["pnl"] for t in bot_trades)
-    bot_cost = sum(t["cost"] for t in bot_trades)
-    bot_wr = len(bot_wins) / len(bot_trades) * 100 if bot_trades else 0
-    bot_roi = (bot_pnl / bot_cost * 100) if bot_cost > 0 else 0
-
     # Per-asset
     assets = {}
     for name in ["BTC", "ETH"]:
@@ -246,10 +206,6 @@ def compute_metrics(trades, active_positions):
         al = [t for t in at if not t["won"]]
         ac = sum(t["cost"] for t in at)
         ap = sum(t["pnl"] for t in at)
-        # Bot only per asset
-        abot = [t for t in at if t["is_bot"]]
-        abw = [t for t in abot if t["won"]]
-        abl = [t for t in abot if not t["won"]]
         assets[name] = {
             "wins": len(aw), "losses": len(al), "total": len(at),
             "wr": round(len(aw) / len(at) * 100, 1) if at else 0,
@@ -257,9 +213,6 @@ def compute_metrics(trades, active_positions):
             "roi": round((ap / ac * 100) if ac > 0 else 0, 1),
             "avg_win": round(sum(t["pnl"] for t in aw) / len(aw), 2) if aw else 0,
             "avg_loss": round(sum(t["pnl"] for t in al) / len(al), 2) if al else 0,
-            "bot_wins": len(abw), "bot_losses": len(abl), "bot_total": len(abot),
-            "bot_wr": round(len(abw) / len(abot) * 100, 1) if abot else 0,
-            "bot_pnl": round(sum(t["pnl"] for t in abot), 2),
         }
 
     # Daily PnL
@@ -292,20 +245,12 @@ def compute_metrics(trades, active_positions):
     # Streak
     streak = compute_streak(trades)
 
-    # Heatmap
-    heatmap = compute_heatmap(trades)
-
     return {
         "total": {
             "trades": len(trades), "wins": len(wins), "losses": len(losses),
             "wr": round(wr, 1), "pnl": round(total_pnl, 2),
             "roi": round(roi, 2), "invested": round(total_cost, 2),
             "active_value": round(active_value, 2), "active_count": len(active_list),
-        },
-        "bot": {
-            "trades": len(bot_trades), "wins": len(bot_wins), "losses": len(bot_losses),
-            "wr": round(bot_wr, 1), "pnl": round(bot_pnl, 2),
-            "roi": round(bot_roi, 2), "invested": round(bot_cost, 2),
         },
         "today": {
             "pnl": round(today_pnl, 2),
@@ -328,7 +273,6 @@ def compute_metrics(trades, active_positions):
         "assets": assets,
         "daily": cumulative,
         "streak": streak,
-        "heatmap": heatmap,
         "recent": [
             {k: v for k, v in t.items() if k != "ts_dt"}
             for t in trades[:50]

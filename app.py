@@ -67,6 +67,25 @@ def fetch_active_positions():
     }) or []
 
 
+def fetch_usdc_balance():
+    """Busca saldo USDC on-chain do proxy wallet via Polygon RPC."""
+    usdc = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+    # balanceOf(address) selector = 0x70a08231
+    addr_padded = FUNDER.lower().replace("0x", "").zfill(64)
+    data = "0x70a08231" + addr_padded
+    try:
+        resp = requests.post("https://polygon-bor-rpc.publicnode.com", json={
+            "jsonrpc": "2.0", "method": "eth_call",
+            "params": [{"to": usdc, "data": data}, "latest"],
+            "id": 1,
+        }, timeout=10)
+        result = resp.json().get("result", "0x0")
+        # USDC has 6 decimals
+        return int(result, 16) / 1e6
+    except Exception:
+        return 0.0
+
+
 def classify_asset(title):
     t = (title or "").lower()
     return "ETH" if ("ethereum" in t or "eth-updown" in t) else "BTC"
@@ -141,8 +160,8 @@ def compute_metrics(trades, active_positions):
     wins = [t for t in trades if t["won"]]
     losses = [t for t in trades if not t["won"]]
 
-    # Active positions value (saldo na conta)
-    active_value = sum(float(p.get("currentValue", 0) or 0) for p in active_positions)
+    # Saldo USDC real on-chain
+    usdc_balance = fetch_usdc_balance()
 
     # Daily PnL
     daily = defaultdict(float)
@@ -165,7 +184,7 @@ def compute_metrics(trades, active_positions):
         "wins": len(wins),
         "losses": len(losses),
         "wr": round(len(wins) / len(trades) * 100, 1) if trades else 0,
-        "active_value": round(active_value, 2),
+        "usdc_balance": round(usdc_balance, 2),
         "today_pnl": round(today_pnl, 2),
         "today_trades": len(today_trades),
         "daily": cumulative,

@@ -9,34 +9,43 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#0b0b1e; color:#e0e0e0; min-height:100vh; }
 
-        .header { background:#111130; padding:16px 24px; border-bottom:1px solid #222255; display:flex; justify-content:space-between; align-items:center; }
-        .header h1 { font-size:18px; color:#fff; font-weight:600; }
+        .header { background:#111130; padding:14px 20px; border-bottom:1px solid #222255; display:flex; justify-content:space-between; align-items:center; }
+        .header h1 { font-size:17px; color:#fff; font-weight:600; }
         .header h1 span { color:#a29bfe; }
         .header .updated { font-size:11px; color:#666; }
 
-        .container { max-width:900px; margin:0 auto; padding:20px 16px; }
+        .container { max-width:900px; margin:0 auto; padding:16px 12px; }
 
-        /* Top stats */
-        .stats { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:12px; margin-bottom:20px; }
-        .stat { background:#13132d; border:1px solid #222255; border-radius:10px; padding:16px; text-align:center; }
-        .stat .label { font-size:10px; color:#777; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
-        .stat .value { font-size:22px; font-weight:700; }
-        .stat .sub { font-size:11px; color:#666; margin-top:4px; }
+        /* Stats */
+        .stats { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:10px; margin-bottom:16px; }
+        .stat { background:#13132d; border:1px solid #222255; border-radius:10px; padding:14px 10px; text-align:center; }
+        .stat .label { font-size:10px; color:#777; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:5px; }
+        .stat .value { font-size:20px; font-weight:700; }
+        .stat .sub { font-size:11px; color:#555; margin-top:3px; }
 
-        .green { color:#00b894; } .red { color:#e17055; }
+        .green { color:#00b894; } .red { color:#e17055; } .purple { color:#6c5ce7; }
 
         /* Chart */
-        .chart-box { background:#13132d; border:1px solid #222255; border-radius:10px; padding:18px; margin-bottom:20px; }
-        .chart-box h2 { font-size:13px; color:#aaa; margin-bottom:14px; font-weight:500; }
-        .chart-wrap { height:250px; position:relative; }
+        .chart-box { background:#13132d; border:1px solid #222255; border-radius:10px; padding:16px; margin-bottom:16px; }
+        .chart-box h2 { font-size:12px; color:#777; margin-bottom:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; }
+        .chart-wrap { height:240px; position:relative; }
 
         /* Table */
-        .table-box { background:#13132d; border:1px solid #222255; border-radius:10px; padding:18px; }
-        .table-box h2 { font-size:13px; color:#aaa; margin-bottom:14px; font-weight:500; }
-        table { width:100%; border-collapse:collapse; font-size:12px; }
-        th { text-align:left; color:#666; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; padding:8px; border-bottom:1px solid #222255; }
-        td { padding:9px 8px; border-bottom:1px solid #1a1a3a; }
-        tr:hover { background:rgba(108,92,231,0.04); }
+        .table-box { background:#13132d; border:1px solid #222255; border-radius:10px; padding:16px; }
+        .table-box h2 { font-size:12px; color:#777; margin-bottom:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; }
+
+        /* Desktop table */
+        .desktop-table { width:100%; border-collapse:collapse; font-size:12px; }
+        .desktop-table th { text-align:left; color:#555; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; padding:8px; border-bottom:1px solid #222255; }
+        .desktop-table td { padding:9px 8px; border-bottom:1px solid #1a1a3a; }
+        .desktop-table tr:hover { background:rgba(108,92,231,0.04); }
+
+        /* Mobile cards */
+        .mobile-trades { display:none; }
+        .trade-card { background:#0e0e28; border:1px solid #1a1a3a; border-radius:8px; padding:12px; margin-bottom:8px; }
+        .trade-card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+        .trade-card-market { font-size:11px; color:#888; margin-bottom:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .trade-card-bottom { display:flex; justify-content:space-between; font-size:11px; color:#666; }
 
         .badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:600; }
         .badge-win { background:rgba(0,184,148,0.12); color:#00b894; }
@@ -48,7 +57,13 @@
         .spinner { display:inline-block; width:24px; height:24px; border:3px solid #222255; border-top-color:#6c5ce7; border-radius:50%; animation:spin 0.7s linear infinite; }
         @keyframes spin { to { transform:rotate(360deg); } }
 
-        @media(max-width:600px) { .stats { grid-template-columns:1fr 1fr; } }
+        @media(max-width:600px) {
+            .stats { grid-template-columns:1fr 1fr; gap:8px; }
+            .stat .value { font-size:18px; }
+            .desktop-table { display:none; }
+            .mobile-trades { display:block; }
+            .chart-wrap { height:200px; }
+        }
     </style>
 </head>
 <body>
@@ -65,8 +80,8 @@
 
         <div class="stats">
             <div class="stat">
-                <div class="label">Saldo Ativo</div>
-                <div class="value" id="saldo">--</div>
+                <div class="label">Saldo USDC</div>
+                <div class="value green" id="saldo">--</div>
             </div>
             <div class="stat">
                 <div class="label">PnL Total</div>
@@ -80,7 +95,7 @@
             </div>
             <div class="stat">
                 <div class="label">Win Rate</div>
-                <div class="value" style="color:#6c5ce7;" id="wr">--</div>
+                <div class="value purple" id="wr">--</div>
             </div>
         </div>
 
@@ -91,10 +106,15 @@
 
         <div class="table-box">
             <h2>Ultimos Resultados</h2>
-            <table>
+
+            <!-- Desktop -->
+            <table class="desktop-table">
                 <thead><tr><th>Status</th><th>Mercado</th><th>Asset</th><th>Custo</th><th>PnL</th><th>Data</th></tr></thead>
                 <tbody id="tbody"></tbody>
             </table>
+
+            <!-- Mobile -->
+            <div class="mobile-trades" id="mobileList"></div>
         </div>
 
     </div>
@@ -109,7 +129,7 @@ function cc(v) { return v>=0?'green':'red'; }
 
 function render(d) {
     // Stats
-    $('saldo').textContent = '$' + d.active_value.toFixed(2);
+    $('saldo').textContent = '$' + d.usdc_balance.toFixed(2);
     $('pnlTotal').textContent = fmt(d.total_pnl);
     $('pnlTotal').className = 'value ' + cc(d.total_pnl);
     $('score').textContent = d.wins + 'W / ' + d.losses + 'L';
@@ -132,7 +152,7 @@ function render(d) {
                 labels,
                 datasets: [
                     {
-                        label: 'PnL Acumulado',
+                        label: 'Acumulado',
                         data: cumul,
                         borderColor: '#6c5ce7',
                         backgroundColor: 'rgba(108,92,231,0.1)',
@@ -143,10 +163,10 @@ function render(d) {
                         borderWidth: 2,
                     },
                     {
-                        label: 'PnL Diario',
+                        label: 'Diario',
                         data: dayPnl,
                         type: 'bar',
-                        backgroundColor: dayPnl.map(v => v >= 0 ? 'rgba(0,184,148,0.6)' : 'rgba(225,112,85,0.6)'),
+                        backgroundColor: dayPnl.map(v => v >= 0 ? 'rgba(0,184,148,0.5)' : 'rgba(225,112,85,0.5)'),
                         borderRadius: 4,
                         order: 2,
                     }
@@ -157,22 +177,18 @@ function render(d) {
                 maintainAspectRatio: false,
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { labels: { color: '#888', font: { size: 11 } } },
-                    tooltip: {
-                        callbacks: {
-                            label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2)
-                        }
-                    }
+                    legend: { labels: { color: '#666', font: { size: 11 } } },
+                    tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toFixed(2) } }
                 },
                 scales: {
-                    x: { ticks: { color: '#555', maxTicksLimit: 10, font: { size: 10 } }, grid: { display: false } },
-                    y: { ticks: { color: '#555', callback: v => '$'+v, font: { size: 10 } }, grid: { color: '#1a1a3a' } }
+                    x: { ticks: { color: '#444', maxTicksLimit: 8, font: { size: 10 } }, grid: { display: false } },
+                    y: { ticks: { color: '#444', callback: v => '$'+v, font: { size: 10 } }, grid: { color: '#1a1a3a' } }
                 }
             }
         });
     }
 
-    // Table
+    // Desktop table
     const tbody = $('tbody');
     tbody.innerHTML = '';
     (d.recent || []).forEach(t => {
@@ -181,12 +197,30 @@ function render(d) {
         const asset = t.asset==='BTC' ? '<span class="badge badge-btc">BTC</span>' : '<span class="badge badge-eth">ETH</span>';
         const time = new Date(t.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
         row.innerHTML = '<td>'+status+'</td>'
-            +'<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#aaa;">'+t.title+'</td>'
+            +'<td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#888;">'+t.title+'</td>'
             +'<td>'+asset+'</td>'
-            +'<td style="color:#aaa;">$'+t.cost.toFixed(2)+'</td>'
+            +'<td style="color:#999;">$'+t.cost.toFixed(2)+'</td>'
             +'<td class="'+cc(t.pnl)+'" style="font-weight:600;">'+fmt(t.pnl)+'</td>'
             +'<td style="color:#555;font-size:11px;">'+time+'</td>';
         tbody.appendChild(row);
+    });
+
+    // Mobile cards
+    const mList = $('mobileList');
+    mList.innerHTML = '';
+    (d.recent || []).forEach(t => {
+        const status = t.won ? '<span class="badge badge-win">WIN</span>' : '<span class="badge badge-loss">LOSS</span>';
+        const asset = t.asset==='BTC' ? '<span class="badge badge-btc">BTC</span>' : '<span class="badge badge-eth">ETH</span>';
+        const time = new Date(t.ts).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+        const card = document.createElement('div');
+        card.className = 'trade-card';
+        card.innerHTML = '<div class="trade-card-top">'
+            +'<div>'+status+' '+asset+'</div>'
+            +'<div class="'+cc(t.pnl)+'" style="font-weight:700;font-size:14px;">'+fmt(t.pnl)+'</div>'
+            +'</div>'
+            +'<div class="trade-card-market">'+t.title+'</div>'
+            +'<div class="trade-card-bottom"><span>Custo: $'+t.cost.toFixed(2)+'</span><span>'+time+'</span></div>';
+        mList.appendChild(card);
     });
 
     $('updated').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
